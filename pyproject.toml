@@ -7,7 +7,9 @@ authors = [
     { name = "Badis-Junia", email = "badis.dahi@student.junia.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "argparse>=1.4.0",
+]
 
 [project.scripts]
 projet = "projet:main"
