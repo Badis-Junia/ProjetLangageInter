@@ -4,7 +4,6 @@ parser = argparse.ArgumentParser(description="Pour les vélos")
 subparsers = parser.add_subparsers(dest="commmande", required=True)
 
 
-
 init_parser = subparsers.add_parser("init", help="Prépare l'outil")
 init_parser.add_argument("--force", action="store_true", help="Force l'initialisation")
 
