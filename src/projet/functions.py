@@ -1,4 +1,47 @@
 import requests
+from pathlib import Path
+import yaml
+
+
+def init_parser(force: bool = False):
+    config_dir = Path.home() / ".config" / "velo"
+    config_file = config_dir / "config.yaml"
+    data_dir = Path.home() / ".local" / "share" / "velo"
+
+    default_config = {
+        "network": {
+            "name": "V'Lille",
+            "gbfs_url": "https://media.ilevia.fr/opendata/gbfs.json",
+        },
+        "data": {
+            "folder": str(data_dir),
+        },
+        "refresh": {
+            "max_age_days": 7,
+        },
+        "collect": {
+            "interval_seconds": 120,
+        },
+        "alerts": {
+            "low_bikes": 2,
+            "low_docks": 2,
+        },
+        "dashboard": {
+            "refresh_seconds": 60,
+        },
+        "logging": {
+            "level": "INFO",
+        },
+    }
+
+    config_dir.mkdir(parents=True, exist_ok=True)
+
+    if not config_file.exists() or force:
+        with open(config_file, "w", encoding="utf-8") as f:
+            yaml.dump(default_config, f, allow_unicode=True, sort_keys=False)
+        print(f"Configuration créée: {config_file}")
+    else:
+        print(f"Configuration déjà existante: {config_file}")
 
 
 def station_list():
@@ -27,3 +70,5 @@ def station_search(name: str):
         for station in stations["data"]["stations"]:
             if name in station["name"].lower().strip():
                 print(f"{int(station['station_id']):03d}    {station['name']}")
+
+
