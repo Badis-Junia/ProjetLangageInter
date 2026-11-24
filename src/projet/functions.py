@@ -59,19 +59,29 @@ def station_list():
             print(f"{int(station['station_id']):03d}    {station['name']}")
 
 
-def station_search(name: str):
+def station_search(search: str):
     url = "https://media.ilevia.fr/opendata/station_information.json"
 
-    param = {"name": name}
-    response = requests.get(url, param)
+    response = requests.get(url)
+    response.raise_for_status()
 
-    if response.status_code == 200:
-        stations = response.json()
-        print("ID     Station")
+    stations = response.json()["data"]["stations"]
 
-        for station in stations["data"]["stations"]:
-            if name in station["name"].lower().strip():
-                print(f"{int(station['station_id']):03d}    {station['name']}")
+    print("ID     Station")
+
+    search = search.lower().strip()
+    found = False
+
+    for station in stations:
+        station_id = str(station["station_id"])
+        station_name = station["name"].lower().strip()
+
+        if search in station_id or search in station_name:
+            print(f"{int(station_id):03d}    {station['name']}")
+            found = True
+
+    if not found:
+        print("Aucune station trouvée.")
 
 
 # --- Refresh --- #
