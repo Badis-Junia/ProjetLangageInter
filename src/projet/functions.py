@@ -1,6 +1,8 @@
 import requests
-from pathlib import Path
 import yaml
+import json
+from pathlib import Path
+from datetime import date
 
 
 def init_parser(force: bool = False):
@@ -72,3 +74,42 @@ def station_search(name: str):
                 print(f"{int(station['station_id']):03d}    {station['name']}")
 
 
+# --- Refresh --- #
+
+def refresh():
+    response = []
+    urls = ["https://media.ilevia.fr/opendata/station_information.json", "https://media.ilevia.fr/opendata/system_information.json", "https://media.ilevia.fr/opendata/vehicle_types.json"]
+    for i in range(len(urls)):
+        response.append(requests.get(urls[i]))
+        response[i].raise_for_status()
+
+    # Station_Information
+
+    with open("data/station_information.json", "wb") as file:
+        file.write(response[0].content)
+    with open("data/station_information.json", "rb") as file:
+        data = json.load(file)
+        date_timestamp = data.get("last_updated")
+        stations = data.get("data").get("stations")
+        stations_amount = len(stations)
+        print(f"Last updated (station_information.json) : {date.fromtimestamp(date_timestamp)}")
+
+    # System_Information
+
+    with open("data/system_information.json", "wb") as file:
+        file.write(response[1].content)
+    with open("data/system_information.json", "rb") as file:
+        data = json.load(file)
+        date_timestamp = data.get("last_updated")
+        print(f"Last updated (system_information.json) : {date.fromtimestamp(date_timestamp)}")
+
+    # Vehicle_Types
+
+    with open("data/vehicle_types.json", "wb") as file:
+        file.write(response[2].content)
+    with open("data/vehicle_types.json", "rb") as file:
+        data = json.load(file)
+        date_timestamp = data.get("last_updated")
+        print(f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}")
+
+    print(f"Il y a {stations_amount} stations")
