@@ -288,11 +288,11 @@ def velo_status(afficher: bool = True):
 
 
 
-def favorite_state():
-    print("ID    Station               Vélos    Places")
+def favorite_state(afficher: bool = True):
+    if afficher:   
+        print("ID    Station               Vélos    Places")
     with open("favorites/favorites.json", "r") as file:
         pass
-
 
 def favorite_add(id: int):
     # TODO: check si la station existe ou est déjà en favori si oui erreur
@@ -376,6 +376,9 @@ def dashboard():
         config = yaml.safe_load(f) or {}
         refresh_time = config.get("dashboard", {}).get("refresh_seconds", 60)
 
+    with open("favorites/favorites.json", "r", encoding="utf-8") as file:
+        favoris_json = json.load(file)
+
     if refresh_time < 60:
         refresh_time = 60
 
@@ -387,7 +390,16 @@ def dashboard():
     stats = velo_status(afficher=False)
     temps_restant = refresh_time
 
-    def generer_panneau(stats_actuelles,network_last_updated ,secondes_restantes):
+    def generer_panneau(stats_actuelles,network_last_updated,secondes_restantes):
+
+        texte_fav = ""
+
+        for nom_station, infos in favoris_json.items():
+            stations_id = infos["station_id"]
+            velos = infos["num_bikes_available"]
+            places = infos["num_docks_available"]
+            texte_fav += f" - {nom_station} ({stations_id}) : {velos} velos, {places} places disponibles\n"
+
         return Panel.fit(
             f"[bold cyan]Réseau {network_name}[/bold cyan]\n"
             f"[dim]Mise à jour : {network_last_updated}[/dim]\n\n"
@@ -395,6 +407,8 @@ def dashboard():
             f"({stats_actuelles['vides']} vides, {stats_actuelles['pleines']} pleines)\n"
             f"[bold]Vélos :[/bold] {stats_actuelles['velos_disponibles']} dispos | "
             f"{stats_actuelles['places_libres']} places ({stats_actuelles['taux_remplissage']}%)\n\n"
+            f"Mes favoris :\n"
+            f"{texte_fav}"
             f"Prochain rafraîchissement dans : [bold yellow]{secondes_restantes}s[/bold yellow]"
         )
 
@@ -418,3 +432,5 @@ def dashboard():
                     live.update(generer_panneau(stats, network_last_updated, temps_restant))
             except KeyboardInterrupt:
                 pass
+
+dashboard()
