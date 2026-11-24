@@ -131,7 +131,7 @@ def station_search(search: str):
 # ----------------------------------------------------------------------------
 
 
-def refresh():
+def refresh(afficher: bool = True):
     data_dir = Path.home() / ".local" / "share" / "velo"
 
     response = []
@@ -153,9 +153,10 @@ def refresh():
         date_timestamp = data.get("last_updated")
         stations = data.get("data").get("stations")
         stations_amount = len(stations)
-        print(
-            f"Last updated (station_information.json) : {date.fromtimestamp(date_timestamp)}"
-        )
+        if afficher:
+            print(
+                f"Last updated (station_information.json) : {date.fromtimestamp(date_timestamp)}"
+            )
 
     # System_Information
 
@@ -164,9 +165,10 @@ def refresh():
     with open(f"{data_dir}/system_information.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
-        print(
-            f"Last updated (system_information.json) : {date.fromtimestamp(date_timestamp)}"
-        )
+        if afficher:
+            print(
+                f"Last updated (system_information.json) : {date.fromtimestamp(date_timestamp)}"
+            )
 
     # Vehicle_Types
 
@@ -175,17 +177,19 @@ def refresh():
     with open(f"{data_dir}/vehicle_types.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
-        print(
-            f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}"
-        )
+        if afficher:
+            print(
+                f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}"
+            )
 
-    print(f"Il y a {stations_amount} stations")
+    if afficher:
+        print(f"Il y a {stations_amount} stations")
 
 
 # ----------------------------------------------------------------------------
 
 
-def velo_status():
+def velo_status(afficher: bool = True):
     data_dir = Path.home() / ".local" / "share" / "velo"
 
     url_statuts = "https://media.ilevia.fr/opendata/station_status.json"
@@ -252,19 +256,32 @@ def velo_status():
     else:
         taux_remplissage = 0
 
-    print("V'Lille - Statistiques des stations")
-    print()
+    stats = {
+        "total_stations": len(informations),
+        "en_service": en_service,
+        "hors_service": hors_service,
+        "vides": vides,
+        "pleines": pleines,
+        "velos_disponibles": velos_disponibles,
+        "places_libres": places_libres,
+        "taux_remplissage": taux_remplissage,
+    }
 
-    print("Stations          en service     ", en_service, "/", len(informations))
-    print("                  hors service    ", hors_service)
-    print("                  vides            ", vides)
-    print("                  pleines          ", pleines)
+    if afficher:
+        print("V'Lille - Statistiques des stations")
+        print()
 
-    print()
-    print("Vélos             disponibles      ", velos_disponibles)
-    print("                  places libres     ", places_libres)
-    print("                  taux de remplissage", taux_remplissage, "%")
+        print("Stations          en service     ", en_service, "/", len(informations))
+        print("                  hors service    ", hors_service)
+        print("                  vides            ", vides)
+        print("                  pleines          ", pleines)
 
+        print()
+        print("Vélos             disponibles      ", velos_disponibles)
+        print("                  places libres     ", places_libres)
+        print("                  taux de remplissage", taux_remplissage, "%")
+
+    return stats
 
 
 # ----------------------------------------------------------------------------
@@ -344,14 +361,15 @@ def velo_alerts(test):
     elif test == 3:
         print("test 3")
 
-
 def dashboard():
     console = Console()
     data_dir = Path.home() / ".local" / "share" / "velo"
     config_dir = Path.home() / ".config" / "velo"
     config_file = config_dir / "config.yaml"
 
-    with open(f"{data_dir}/system_information.json", "r", encoding="utf-8") as fichier:
+    refresh(False)
+
+    with open(data_dir / "system_information.json", "r", encoding="utf-8") as fichier:
         data = json.load(fichier)
 
     with open(config_file, "r", encoding="utf-8") as f:
@@ -362,29 +380,41 @@ def dashboard():
         refresh_time = 60
 
     network_name = data["data"]["name"]
-    network_last_updated = datetime.fromtimestamp(data["last_updated"], tz=ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M:%S")
+    network_last_updated = datetime.fromtimestamp(
+        data["last_updated"], tz=ZoneInfo("Europe/Paris")
+    ).strftime("%d/%m/%Y %H:%M:%S")
 
-    def generer_panneau(temps_restant: int) -> Panel:
-        return Panel.fit(
-            f"[bold cyan]Réseau {network_name}[/bold cyan]\n"
-            f"[dim]Mise à jour : {network_last_updated}[/dim]\n"
-            f"Prochain rafraîchissement dans : [bold yellow]{temps_restant}s[/bold yellow]"
-        )
-
+    stats = velo_status(afficher=False)
     temps_restant = refresh_time
 
-    with Live(generer_panneau(temps_restant), console=console, refresh_per_second=4) as live:
-        try:
-            while True:
-                time.sleep(1)
-                temps_restant -= 1
+    def generer_panneau(stats_actuelles,network_last_updated ,secondes_restantes):
+        return Panel.fit(
+            f"[bold cyan]Réseau {network_name}[/bold cyan]\n"
+            f"[dim]Mise à jour : {network_last_updated}[/dim]\n\n"
+            f"[bold]Stations :[/bold] {stats_actuelles['en_service']}/{stats_actuelles['total_stations']} en service "
+            f"({stats_actuelles['vides']} vides, {stats_actuelles['pleines']} pleines)\n"
+            f"[bold]Vélos :[/bold] {stats_actuelles['velos_disponibles']} dispos | "
+            f"{stats_actuelles['places_libres']} places ({stats_actuelles['taux_remplissage']}%)\n\n"
+            f"Prochain rafraîchissement dans : [bold yellow]{secondes_restantes}s[/bold yellow]"
+        )
 
-                if temps_restant <= 0:
-                    temps_restant = refresh_time
+    with Live(generer_panneau(stats, network_last_updated, temps_restant),console=console,refresh_per_second=4,) as live:
+            try:
+                while True:
+                    time.sleep(1)
+                    temps_restant -= 1
 
-                live.update(generer_panneau(temps_restant))
-        except KeyboardInterrupt:
-            pass
+                    if temps_restant <= 0:
+                        stats = velo_status(afficher=False)
+                        with open(data_dir / "station_status.json", "r", encoding="utf-8") as f:
+                            status_data = json.load(f)
 
-init_parser()
-dashboard()
+                        network_last_updated = datetime.fromtimestamp(
+                            status_data["last_updated"], tz=ZoneInfo("Europe/Paris")
+                        ).strftime("%d/%m/%Y %H:%M:%S")
+
+                        temps_restant = refresh_time
+
+                    live.update(generer_panneau(stats, network_last_updated, temps_restant))
+            except KeyboardInterrupt:
+                pass
