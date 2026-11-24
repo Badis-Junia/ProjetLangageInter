@@ -268,3 +268,12 @@ def velo_status():
     print("Vélos             disponibles      ", velos_disponibles)
     print("                  places libres     ", places_libres)
     print("                  taux de remplissage", taux_remplissage, "%")
+
+
+
+# ----------------------------------------------------------------------------
+
+
+
+def velo_alerts():
+    print("test")
