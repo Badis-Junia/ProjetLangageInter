@@ -160,29 +160,73 @@ def refresh():
 
 
 
+
+
 def velo_status():
-    url = "https://media.ilevia.fr/opendata/station_information.json"
+    url_informations = "https://media.ilevia.fr/opendata/station_information.json"
+    url_statuts = "https://media.ilevia.fr/opendata/station_status.json"
 
-    response = requests.get(url)
-    stations = response.json()
+    response_informations = requests.get(url_informations)
+    response_statuts = requests.get(url_statuts)
 
-    # statuts_par_id = {
-    #     station["station_id"]: station
-    #     for station in statuts
-    # }
+    informations = response_informations.json()["data"]["stations"]
+    statuts = response_statuts.json()["data"]["stations"]
 
+    statuts_par_id = {}
+
+    for statut in statuts:
+        station_id = statut["station_id"]
+        statuts_par_id[station_id] = statut
 
     en_service = 0
     hors_service = 0
     vides = 0
     pleines = 0
-
     velos_disponibles = 0
     places_libres = 0
 
+    for station in informations:
+        station_id = station["station_id"]
+        statut = statuts_par_id.get(station_id)
 
-    print(stations)
+        if statut is None:
+            continue
 
+        if (statut["is_installed"] == 1 and statut["is_renting"] == 1 and statut["is_returning"] == 1):
+            en_service += 1
+        else:
+            hors_service += 1
 
+        velos = statut["num_bikes_available"]
+        places = statut["num_docks_available"]
 
+        if velos == 0:
+            vides += 1
 
+        if places == 0:
+            pleines += 1
+
+        velos_disponibles += velos
+        places_libres += places
+
+    capacite_totale = velos_disponibles + places_libres
+
+    if capacite_totale > 0:
+        taux_remplissage = round(
+            velos_disponibles / capacite_totale * 100
+        )
+    else:
+        taux_remplissage = 0
+
+    print("V'Lille - Statistiques des stations")
+    print()
+
+    print(f"Stations          en service {en_service} / {len(informations)}")
+    print(f"                  hors service {hors_service}")
+    print(f"                  vides {vides}")
+    print(f"                  pleines {pleines}")
+
+    print()
+    print(f"Vélos             disponibles {velos_disponibles}")
+    print(f"                  places libres {places_libres}")
+    print(f"                  taux de remplissage {taux_remplissage} %")
