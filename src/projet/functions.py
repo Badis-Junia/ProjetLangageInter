@@ -2,7 +2,7 @@ import requests
 import yaml
 import json
 from pathlib import Path
-from datetime import date
+from datetime import datetime, date
 
 def init_parser(force: bool = False):
     config_dir = Path.home() / ".config" / "velo"
@@ -112,7 +112,6 @@ def station_search(search: str):
         print("Aucune station trouvée.")
 
 
-# --- Refresh --- #
 
 def refresh():
     data_dir = Path.home() / ".local" / "share" / "velo"
@@ -152,4 +151,38 @@ def refresh():
         date_timestamp = data.get("last_updated")
         print(f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}")
 
+
+
     print(f"Il y a {stations_amount} stations")
+
+
+
+
+
+
+def velo_status():
+    url = "https://media.ilevia.fr/opendata/station_information.json"
+
+    response = requests.get(url)
+    stations = response.json()
+
+    # statuts_par_id = {
+    #     station["station_id"]: station
+    #     for station in statuts
+    # }
+
+
+    en_service = 0
+    hors_service = 0
+    vides = 0
+    pleines = 0
+
+    velos_disponibles = 0
+    places_libres = 0
+
+
+    print(stations)
+
+
+
+
