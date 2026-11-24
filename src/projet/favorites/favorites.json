@@ -1,0 +1,152 @@
+{
+  "Rue de Toul": {
+    "station_id": "9",
+    "num_bikes_available": 30,
+    "vehicle_types_available": [
+      {
+        "count": 30,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 6,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510212
+  },
+  "Rihour": {
+    "station_id": "10",
+    "num_bikes_available": 28,
+    "vehicle_types_available": [
+      {
+        "count": 28,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 4,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510239
+  },
+  "Nouveau siecle": {
+    "station_id": "11",
+    "num_bikes_available": 25,
+    "vehicle_types_available": [
+      {
+        "count": 25,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 7,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510168
+  },
+  "Opera": {
+    "station_id": "12",
+    "num_bikes_available": 14,
+    "vehicle_types_available": [
+      {
+        "count": 14,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 11,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510118
+  },
+  "Quai du Wault": {
+    "station_id": "13",
+    "num_bikes_available": 9,
+    "vehicle_types_available": [
+      {
+        "count": 9,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 9,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510200
+  },
+  "Champ de Mars": {
+    "station_id": "14",
+    "num_bikes_available": 19,
+    "vehicle_types_available": [
+      {
+        "count": 19,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 21,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510203
+  },
+  "Esplanade": {
+    "station_id": "15",
+    "num_bikes_available": 5,
+    "vehicle_types_available": [
+      {
+        "count": 5,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 19,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510258
+  },
+  "Magasin": {
+    "station_id": "16",
+    "num_bikes_available": 0,
+    "vehicle_types_available": [
+      {
+        "count": 0,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 16,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510153
+  },
+  "Halle aux sucres": {
+    "station_id": "17",
+    "num_bikes_available": 0,
+    "vehicle_types_available": [
+      {
+        "count": 0,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 19,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510181
+  },
+  "Voltaire": {
+    "station_id": "18",
+    "num_bikes_available": 0,
+    "vehicle_types_available": [
+      {
+        "count": 0,
+        "vehicle_type_id": "bike"
+      }
+    ],
+    "num_docks_available": 14,
+    "is_installed": true,
+    "is_renting": true,
+    "is_returning": true,
+    "last_reported": 1795510205
+  }
+}

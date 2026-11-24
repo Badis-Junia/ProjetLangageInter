@@ -5,10 +5,11 @@ from pathlib import Path
 from datetime import datetime, date
 from rich.console import Console
 from rich.panel import Panel
-from zoneinfo import ZoneInfo 
+from zoneinfo import ZoneInfo
 
 
 # ----------------------------------------------------------------------------
+
 
 def init_parser(force: bool = False):
     config_dir = Path.home() / ".config" / "velo"
@@ -53,13 +54,17 @@ def init_parser(force: bool = False):
     # --- Création du dossier data --- #
 
     if not data_dir.exists():
-        data_dir.mkdir(parents = True, exist_ok = True)
+        data_dir.mkdir(parents=True, exist_ok=True)
         print(f"Dossier de données créé : {data_dir}")
 
     # --- Téléchargement des 3 fichiers --- #
 
     response = []
-    urls = ["https://media.ilevia.fr/opendata/station_information.json", "https://media.ilevia.fr/opendata/system_information.json", "https://media.ilevia.fr/opendata/vehicle_types.json"]
+    urls = [
+        "https://media.ilevia.fr/opendata/station_information.json",
+        "https://media.ilevia.fr/opendata/system_information.json",
+        "https://media.ilevia.fr/opendata/vehicle_types.json",
+    ]
     for i in range(len(urls)):
         response.append(requests.get(urls[i]))
         response[i].raise_for_status()
@@ -79,10 +84,8 @@ def init_parser(force: bool = False):
     print(f"Connexion à V'Lille : OK ({stations_amount} stations)")
 
 
-
 # ----------------------------------------------------------------------------
 
-    
 
 def station_list():
     url = "https://media.ilevia.fr/opendata/station_information.json"
@@ -122,16 +125,18 @@ def station_search(search: str):
         print("Aucune station trouvée.")
 
 
-
 # ----------------------------------------------------------------------------
-
 
 
 def refresh():
     data_dir = Path.home() / ".local" / "share" / "velo"
 
     response = []
-    urls = ["https://media.ilevia.fr/opendata/station_information.json", "https://media.ilevia.fr/opendata/system_information.json", "https://media.ilevia.fr/opendata/vehicle_types.json"]
+    urls = [
+        "https://media.ilevia.fr/opendata/station_information.json",
+        "https://media.ilevia.fr/opendata/system_information.json",
+        "https://media.ilevia.fr/opendata/vehicle_types.json",
+    ]
     for i in range(len(urls)):
         response.append(requests.get(urls[i]))
         response[i].raise_for_status()
@@ -145,7 +150,9 @@ def refresh():
         date_timestamp = data.get("last_updated")
         stations = data.get("data").get("stations")
         stations_amount = len(stations)
-        print(f"Last updated (station_information.json) : {date.fromtimestamp(date_timestamp)}")
+        print(
+            f"Last updated (station_information.json) : {date.fromtimestamp(date_timestamp)}"
+        )
 
     # System_Information
 
@@ -154,7 +161,9 @@ def refresh():
     with open(f"{data_dir}/system_information.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
-        print(f"Last updated (system_information.json) : {date.fromtimestamp(date_timestamp)}")
+        print(
+            f"Last updated (system_information.json) : {date.fromtimestamp(date_timestamp)}"
+        )
 
     # Vehicle_Types
 
@@ -163,22 +172,18 @@ def refresh():
     with open(f"{data_dir}/vehicle_types.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
-        print(f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}")
-
-
+        print(
+            f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}"
+        )
 
     print(f"Il y a {stations_amount} stations")
-
 
 
 # ----------------------------------------------------------------------------
 
 
-
 def velo_status():
     data_dir = Path.home() / ".local" / "share" / "velo"
-
-    
 
     url_statuts = "https://media.ilevia.fr/opendata/station_status.json"
 
@@ -190,23 +195,17 @@ def velo_status():
     with open(status_file, "wb") as file:
         file.write(response.content)
 
-    
-
     with open(data_dir / "station_information.json", "r", encoding="utf-8") as file:
         informations = json.load(file)["data"]["stations"]
 
     with open(status_file, "r", encoding="utf-8") as file:
         statuts = json.load(file)["data"]["stations"]
 
-    
-
     statuts_par_id = {}
 
     for statut in statuts:
         station_id = statut["station_id"]
         statuts_par_id[station_id] = statut
-
-    
 
     en_service = 0
     hors_service = 0
@@ -243,18 +242,12 @@ def velo_status():
         velos_disponibles += velos
         places_libres += places
 
-    
-
     capacite_totale = velos_disponibles + places_libres
 
     if capacite_totale > 0:
-        taux_remplissage = round(
-            velos_disponibles / capacite_totale * 100
-        )
+        taux_remplissage = round(velos_disponibles / capacite_totale * 100)
     else:
         taux_remplissage = 0
-
-    
 
     print("V'Lille - Statistiques des stations")
     print()
@@ -270,10 +263,71 @@ def velo_status():
     print("                  taux de remplissage", taux_remplissage, "%")
 
 
-
 # ----------------------------------------------------------------------------
-
 
 
 def velo_alerts():
     print("test")
+
+
+# --- Favorite --- #
+
+
+def favorite_state():
+    print("ID    Station               Vélos    Places")
+    with open("favorites/favorites.json", "r") as file:
+        pass
+
+
+def favorite_add(id: int):
+    # TODO: check si la station existe ou est déjà en favori si oui erreur
+    urls = [
+        "https://media.ilevia.fr/opendata/station_status.json",
+        "https://media.ilevia.fr/opendata/station_information.json",
+    ]
+    param = {"station_id": id}
+    response = []
+
+    for i in range(len(urls)):
+        response.append(requests.get(urls[i], param))
+        response[i].raise_for_status()
+
+    status_stations = response[0].json()["data"]["stations"]
+    information_stations = response[1].json()["data"]["stations"]
+    station_names = {
+        str(station["station_id"]): station["name"] for station in information_stations
+    }
+
+    with open("favorites/favorites.json", "r") as file:
+        data = json.load(file)
+        if (len(data)) >= 10:
+            raise ValueError(
+                "Vous possédez plus de 10 favoris, veuillez en retirer un."
+            )
+
+    for station in status_stations:
+        if str(id) == str(station["station_id"]):
+            favorites_path = Path("favorites/favorites.json")
+            favorites_path.parent.mkdir(parents=True, exist_ok=True)
+
+            if favorites_path.exists():
+                try:
+                    with favorites_path.open() as jsonfile:
+                        favorites = json.load(jsonfile)
+                except json.JSONDecodeError:
+                    favorites = {}
+            else:
+                favorites = {}
+
+            station_name = station_names.get(str(station["station_id"]))
+            if station_name is None:
+                return
+
+            favorites[station_name] = station
+            with favorites_path.open("w") as jsonfile:
+                json.dump(favorites, jsonfile, indent=2, ensure_ascii=False)
+            return
+
+
+def favorite_delete(id: int):
+    pass
