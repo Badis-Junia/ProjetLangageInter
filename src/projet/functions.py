@@ -165,21 +165,39 @@ def refresh():
 
 
 
+
 def velo_status():
-    url_informations = "https://media.ilevia.fr/opendata/station_information.json"
+    data_dir = Path.home() / ".local" / "share" / "velo"
+
+    
+
     url_statuts = "https://media.ilevia.fr/opendata/station_status.json"
 
-    response_informations = requests.get(url_informations)
-    response_statuts = requests.get(url_statuts)
+    response = requests.get(url_statuts)
+    response.raise_for_status()
 
-    informations = response_informations.json()["data"]["stations"]
-    statuts = response_statuts.json()["data"]["stations"]
+    status_file = data_dir / "station_status.json"
+
+    with open(status_file, "wb") as file:
+        file.write(response.content)
+
+    
+
+    with open(data_dir / "station_information.json", "r", encoding="utf-8") as file:
+        informations = json.load(file)["data"]["stations"]
+
+    with open(status_file, "r", encoding="utf-8") as file:
+        statuts = json.load(file)["data"]["stations"]
+
+    
 
     statuts_par_id = {}
 
     for statut in statuts:
         station_id = statut["station_id"]
         statuts_par_id[station_id] = statut
+
+    
 
     en_service = 0
     hors_service = 0
@@ -195,7 +213,11 @@ def velo_status():
         if statut is None:
             continue
 
-        if (statut["is_installed"] == 1 and statut["is_renting"] == 1 and statut["is_returning"] == 1):
+        if (
+            statut["is_installed"] == 1
+            and statut["is_renting"] == 1
+            and statut["is_returning"] == 1
+        ):
             en_service += 1
         else:
             hors_service += 1
@@ -212,6 +234,8 @@ def velo_status():
         velos_disponibles += velos
         places_libres += places
 
+    
+
     capacite_totale = velos_disponibles + places_libres
 
     if capacite_totale > 0:
@@ -221,15 +245,17 @@ def velo_status():
     else:
         taux_remplissage = 0
 
+    
+
     print("V'Lille - Statistiques des stations")
     print()
 
-    print("Stations          en service, ", en_service, "/", len(informations))
-    print("                  hors service ", hors_service)
-    print("                  vides ", vides)
-    print("                  pleines", pleines)
+    print("Stations          en service     ", en_service, "/", len(informations))
+    print("                  hors service    ", hors_service)
+    print("                  vides            ", vides)
+    print("                  pleines          ", pleines)
 
     print()
-    print("Vélos             disponibles ", velos_disponibles)
-    print("                  places libres", places_libres)
+    print("Vélos             disponibles      ", velos_disponibles)
+    print("                  places libres     ", places_libres)
     print("                  taux de remplissage", taux_remplissage, "%")
