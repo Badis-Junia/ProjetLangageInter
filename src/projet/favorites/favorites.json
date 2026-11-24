@@ -106,47 +106,31 @@
   },
   "Magasin": {
     "station_id": "16",
-    "num_bikes_available": 0,
+    "num_bikes_available": 14,
     "vehicle_types_available": [
       {
-        "count": 0,
+        "count": 14,
         "vehicle_type_id": "bike"
       }
     ],
-    "num_docks_available": 16,
+    "num_docks_available": 2,
     "is_installed": true,
     "is_renting": true,
     "is_returning": true,
-    "last_reported": 1795510153
+    "last_reported": 1795553781
   },
   "Halle aux sucres": {
     "station_id": "17",
-    "num_bikes_available": 0,
+    "num_bikes_available": 16,
     "vehicle_types_available": [
       {
-        "count": 0,
         "vehicle_type_id": "bike"
       }
     ],
-    "num_docks_available": 19,
+    "num_docks_available": 3,
     "is_installed": true,
     "is_renting": true,
     "is_returning": true,
-    "last_reported": 1795510181
-  },
-  "Voltaire": {
-    "station_id": "18",
-    "num_bikes_available": 0,
-    "vehicle_types_available": [
-      {
-        "count": 0,
-        "vehicle_type_id": "bike"
-      }
-    ],
-    "num_docks_available": 14,
-    "is_installed": true,
-    "is_renting": true,
-    "is_returning": true,
-    "last_reported": 1795510205
+    "last_reported": 1795554403
   }
 }

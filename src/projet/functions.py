@@ -287,15 +287,26 @@ def velo_status(afficher: bool = True):
 # ----------------------------------------------------------------------------
 
 
+def favorite_state():
+    print(f"{'ID'}    {'Station':<20} {'Vélos':>6}  {'Places':>6}")
+    with open("favorites/favorites.json", "r") as jsonfile:
+        favorites = json.load(jsonfile)
+        for station_name, station in list(favorites.items()):
+            velos = station.get("num_bikes_available")
+            places = station.get("num_docks_available")
+            if velos == 0:
+                etat = "vide"
+            if places == 0:
+                etat = "plein"
+            else:
+                etat = ""
 
-def favorite_state(afficher: bool = True):
-    if afficher:   
-        print("ID    Station               Vélos    Places")
-    with open("favorites/favorites.json", "r") as file:
-        pass
+            print(
+                f"{int(station['station_id']):03d}   {station_name:<20} {velos:>6}  {places:>6}  {etat}"
+            )
+
 
 def favorite_add(id: int):
-    # TODO: check si la station existe ou est déjà en favori si oui erreur
     urls = [
         "https://media.ilevia.fr/opendata/station_status.json",
         "https://media.ilevia.fr/opendata/station_information.json",
@@ -315,19 +326,21 @@ def favorite_add(id: int):
 
     with open("favorites/favorites.json", "r") as file:
         data = json.load(file)
+        if any(str(station.get("station_id")) == str(id) for station in data.values()):
+            print("Cette station est déjà dans vos favoris.")
+            raise ValueError("Station déjà présente dans le fichier favorites.json")
         if (len(data)) >= 10:
-            raise ValueError(
-                "Vous possédez plus de 10 favoris, veuillez en retirer un."
-            )
+            print("Vous possédez plus de 10 favoris, veuillez en retirer un.")
+            raise ValueError("Limite de favoris atteinte.")
 
     for station in status_stations:
         if str(id) == str(station["station_id"]):
-            favorites_path = Path("favorites/favorites.json")
-            favorites_path.parent.mkdir(parents=True, exist_ok=True)
+            favoritePath = Path("favorites/favorites.json")
+            favoritePath.parent.mkdir(parents=True, exist_ok=True)
 
-            if favorites_path.exists():
+            if favoritePath.exists():
                 try:
-                    with favorites_path.open() as jsonfile:
+                    with favoritePath.open() as jsonfile:
                         favorites = json.load(jsonfile)
                 except json.JSONDecodeError:
                     favorites = {}
@@ -339,18 +352,31 @@ def favorite_add(id: int):
                 return
 
             favorites[station_name] = station
-            with favorites_path.open("w") as jsonfile:
-                json.dump(favorites, jsonfile, indent=2, ensure_ascii=False)
+            with favoritePath.open("w") as jsonfile:
+                json.dump(favorites, jsonfile, indent=2)
             return
 
 
 def favorite_delete(id: int):
-    pass
+    with open("favorites/favorites.json", "r") as jsonfile:
+        favorites = json.load(jsonfile)
 
+    found = False
+    for station_name, station in list(favorites.items()):
+        if str(station.get("station_id")) == str(id):
+            del favorites[station_name]
+            found = True
+            break
+
+    if not found:
+        print("Cette station n'est pas dans vos favoris.")
+        raise ValueError("Station absente du fichier favorites.json")
+
+    with open("favorites/favorites.json", "w") as jsonfile:
+        json.dump(favorites, jsonfile, indent=2)
 
 
 # ----------------------------------------------------------------------------
-
 
 
 def velo_alerts(test):
@@ -360,6 +386,7 @@ def velo_alerts(test):
         print("test 2")
     elif test == 3:
         print("test 3")
+
 
 def dashboard():
     console = Console()
@@ -390,7 +417,7 @@ def dashboard():
     stats = velo_status(afficher=False)
     temps_restant = refresh_time
 
-    def generer_panneau(stats_actuelles,network_last_updated,secondes_restantes):
+    def generer_panneau(stats_actuelles, network_last_updated, secondes_restantes):
 
         texte_fav = ""
 
@@ -412,25 +439,32 @@ def dashboard():
             f"Prochain rafraîchissement dans : [bold yellow]{secondes_restantes}s[/bold yellow]"
         )
 
-    with Live(generer_panneau(stats, network_last_updated, temps_restant),console=console,refresh_per_second=4,) as live:
-            try:
-                while True:
-                    time.sleep(1)
-                    temps_restant -= 1
+    with Live(
+        generer_panneau(stats, network_last_updated, temps_restant),
+        console=console,
+        refresh_per_second=4,
+    ) as live:
+        try:
+            while True:
+                time.sleep(1)
+                temps_restant -= 1
 
-                    if temps_restant <= 0:
-                        stats = velo_status(afficher=False)
-                        with open(data_dir / "station_status.json", "r", encoding="utf-8") as f:
-                            status_data = json.load(f)
+                if temps_restant <= 0:
+                    stats = velo_status(afficher=False)
+                    with open(
+                        data_dir / "station_status.json", "r", encoding="utf-8"
+                    ) as f:
+                        status_data = json.load(f)
 
-                        network_last_updated = datetime.fromtimestamp(
-                            status_data["last_updated"], tz=ZoneInfo("Europe/Paris")
-                        ).strftime("%d/%m/%Y %H:%M:%S")
+                    network_last_updated = datetime.fromtimestamp(
+                        status_data["last_updated"], tz=ZoneInfo("Europe/Paris")
+                    ).strftime("%d/%m/%Y %H:%M:%S")
 
-                        temps_restant = refresh_time
+                    temps_restant = refresh_time
 
-                    live.update(generer_panneau(stats, network_last_updated, temps_restant))
-            except KeyboardInterrupt:
-                pass
+                live.update(generer_panneau(stats, network_last_updated, temps_restant))
+        except KeyboardInterrupt:
+            pass
+
 
 dashboard()
