@@ -6,6 +6,9 @@ from datetime import datetime, date
 from rich.console import Console
 from rich.panel import Panel
 from zoneinfo import ZoneInfo
+from rich.live import Live
+from rich.table import Table
+import time
 
 
 # ----------------------------------------------------------------------------
@@ -341,3 +344,47 @@ def velo_alerts(test):
     elif test == 3:
         print("test 3")
 
+
+def dashboard():
+    console = Console()
+    data_dir = Path.home() / ".local" / "share" / "velo"
+    config_dir = Path.home() / ".config" / "velo"
+    config_file = config_dir / "config.yaml"
+
+    with open(f"{data_dir}/system_information.json", "r", encoding="utf-8") as fichier:
+        data = json.load(fichier)
+
+    with open(config_file, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f) or {}
+        refresh_time = config.get("dashboard", {}).get("refresh_seconds", 60)
+
+    if refresh_time < 60:
+        refresh_time = 60
+
+    network_name = data["data"]["name"]
+    network_last_updated = datetime.fromtimestamp(data["last_updated"], tz=ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M:%S")
+
+    def generer_panneau(temps_restant: int) -> Panel:
+        return Panel.fit(
+            f"[bold cyan]Réseau {network_name}[/bold cyan]\n"
+            f"[dim]Mise à jour : {network_last_updated}[/dim]\n"
+            f"Prochain rafraîchissement dans : [bold yellow]{temps_restant}s[/bold yellow]"
+        )
+
+    temps_restant = refresh_time
+
+    with Live(generer_panneau(temps_restant), console=console, refresh_per_second=4) as live:
+        try:
+            while True:
+                time.sleep(1)
+                temps_restant -= 1
+
+                if temps_restant <= 0:
+                    temps_restant = refresh_time
+
+                live.update(generer_panneau(temps_restant))
+        except KeyboardInterrupt:
+            pass
+
+init_parser()
+dashboard()
