@@ -31,9 +31,9 @@ favorite_remove = favorite_subparsers.add_parser("remove", help="Enlever un favo
 favorite_remove.add_argument("station", type=str)
 
 
-alert_parser = subparsers.add_parser("alerts", help="Lister les stations vides, presque vides, bref toute les alertes")
-alert_parser.add_argument("--low-bikes", type=int)
-alert_parser.add_argument("--low-docks", type=int)
+alert_parser = subparsers.add_parser("alerts", help="Lister les stations vides, presque vides, bref toutes les alertes")
+alert_parser.add_argument("--low-bikes", type=int, help="Seuil de vélos disponibles")
+alert_parser.add_argument("--low-docks", type=int, help="Seuil de places disponibles")
 
 
 dashboard_parser = subparsers.add_parser("dashboard", help="Tableau de bord, mis à jour en temps réel")
@@ -79,4 +79,11 @@ elif args.commande == "status":
 elif args.commande == "init":
     initialisation()
 elif args.commande == "alerts":
-    velo_alerts()
+    if args.low_bikes != None:
+        velo_alerts(1)
+
+    elif args.low_docks != None:
+        velo_alerts(2)
+
+    else:
+        velo_alerts(3)

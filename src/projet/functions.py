@@ -266,6 +266,7 @@ def velo_status():
 # ----------------------------------------------------------------------------
 
 
+
 def velo_alerts():
     print("test")
 
@@ -331,3 +332,13 @@ def favorite_add(id: int):
 
 def favorite_delete(id: int):
     pass
+
+
+def velo_alerts(test):
+    if test == 1:
+        print("test 1")
+    elif test == 2:
+        print("test 2")
+    elif test == 3:
+        print("test 3")
+
