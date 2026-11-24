@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 from datetime import date
 
-
 def init_parser(force: bool = False):
     config_dir = Path.home() / ".config" / "velo"
     config_file = config_dir / "config.yaml"
@@ -45,6 +44,35 @@ def init_parser(force: bool = False):
     else:
         print(f"Configuration déjà existante: {config_file}")
 
+    # --- Création du dossier data --- #
+
+    if not data_dir.exists():
+        data_dir.mkdir(parents = True, exist_ok = True)
+        print(f"Dossier de données créé : {data_dir}")
+
+    # --- Téléchargement des 3 fichiers --- #
+
+    response = []
+    urls = ["https://media.ilevia.fr/opendata/station_information.json", "https://media.ilevia.fr/opendata/system_information.json", "https://media.ilevia.fr/opendata/vehicle_types.json"]
+    for i in range(len(urls)):
+        response.append(requests.get(urls[i]))
+        response[i].raise_for_status()
+
+    with open(f"{data_dir}/station_information.json", "wb") as file:
+        file.write(response[0].content)
+    with open(f"{data_dir}/system_information.json", "wb") as file:
+        file.write(response[1].content)
+    with open(f"{data_dir}/vehicle_types.json", "wb") as file:
+        file.write(response[2].content)
+
+    with open(f"{data_dir}/station_information.json", "rb") as file:
+        data = json.load(file)
+        stations = data.get("data").get("stations")
+        stations_amount = len(stations)
+
+    print(f"Connexion à V'Lille : OK ({stations_amount} stations)")
+
+    
 
 def station_list():
     url = "https://media.ilevia.fr/opendata/station_information.json"
@@ -87,6 +115,8 @@ def station_search(search: str):
 # --- Refresh --- #
 
 def refresh():
+    data_dir = Path.home() / ".local" / "share" / "velo"
+
     response = []
     urls = ["https://media.ilevia.fr/opendata/station_information.json", "https://media.ilevia.fr/opendata/system_information.json", "https://media.ilevia.fr/opendata/vehicle_types.json"]
     for i in range(len(urls)):
@@ -95,9 +125,9 @@ def refresh():
 
     # Station_Information
 
-    with open("data/station_information.json", "wb") as file:
+    with open(f"{data_dir}/station_information.json", "wb") as file:
         file.write(response[0].content)
-    with open("data/station_information.json", "rb") as file:
+    with open(f"{data_dir}/station_information.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
         stations = data.get("data").get("stations")
@@ -106,21 +136,23 @@ def refresh():
 
     # System_Information
 
-    with open("data/system_information.json", "wb") as file:
+    with open(f"{data_dir}/system_information.json", "wb") as file:
         file.write(response[1].content)
-    with open("data/system_information.json", "rb") as file:
+    with open(f"{data_dir}/system_information.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
         print(f"Last updated (system_information.json) : {date.fromtimestamp(date_timestamp)}")
 
     # Vehicle_Types
 
-    with open("data/vehicle_types.json", "wb") as file:
+    with open(f"{data_dir}/vehicle_types.json", "wb") as file:
         file.write(response[2].content)
-    with open("data/vehicle_types.json", "rb") as file:
+    with open(f"{data_dir}/vehicle_types.json", "rb") as file:
         data = json.load(file)
         date_timestamp = data.get("last_updated")
         print(f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}")
 
     print(f"Il y a {stations_amount} stations")
 
+
+refresh()
