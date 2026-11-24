@@ -1,5 +1,6 @@
 import argparse
 from projet.functions import station_list, station_search, refresh, velo_status
+from projet.functions import init_parser as initialisation
 
 parser = argparse.ArgumentParser(description="Pour les vélos")
 subparsers = parser.add_subparsers(dest="commande", required=True)
@@ -75,3 +76,5 @@ elif args.commande == "refresh":
     refresh()
 elif args.commande == "status":
     velo_status()
+elif args.commande == "init":
+    initialisation()

@@ -3,6 +3,9 @@ import yaml
 import json
 from pathlib import Path
 from datetime import datetime, date
+from rich.console import Console
+from rich.panel import Panel
+from zoneinfo import ZoneInfo 
 
 def init_parser(force: bool = False):
     config_dir = Path.home() / ".config" / "velo"
