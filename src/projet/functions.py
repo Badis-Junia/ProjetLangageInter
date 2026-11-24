@@ -7,6 +7,9 @@ from rich.console import Console
 from rich.panel import Panel
 from zoneinfo import ZoneInfo 
 
+
+# ----------------------------------------------------------------------------
+
 def init_parser(force: bool = False):
     config_dir = Path.home() / ".config" / "velo"
     config_file = config_dir / "config.yaml"
@@ -75,6 +78,10 @@ def init_parser(force: bool = False):
 
     print(f"Connexion à V'Lille : OK ({stations_amount} stations)")
 
+
+
+# ----------------------------------------------------------------------------
+
     
 
 def station_list():
@@ -113,6 +120,10 @@ def station_search(search: str):
 
     if not found:
         print("Aucune station trouvée.")
+
+
+
+# ----------------------------------------------------------------------------
 
 
 
@@ -160,9 +171,7 @@ def refresh():
 
 
 
-
-
-
+# ----------------------------------------------------------------------------
 
 
 
