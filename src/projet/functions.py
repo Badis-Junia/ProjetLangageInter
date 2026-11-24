@@ -263,15 +263,9 @@ def velo_status():
     print("                  taux de remplissage", taux_remplissage, "%")
 
 
+
 # ----------------------------------------------------------------------------
 
-
-
-def velo_alerts():
-    print("test")
-
-
-# --- Favorite --- #
 
 
 def favorite_state():
@@ -332,6 +326,11 @@ def favorite_add(id: int):
 
 def favorite_delete(id: int):
     pass
+
+
+
+# ----------------------------------------------------------------------------
+
 
 
 def velo_alerts(test):
