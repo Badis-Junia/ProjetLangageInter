@@ -153,6 +153,3 @@ def refresh():
         print(f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}")
 
     print(f"Il y a {stations_amount} stations")
-
-
-refresh()
