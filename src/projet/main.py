@@ -1,8 +1,8 @@
 import argparse
-from projet.functions import station_list, station_search
+from projet.functions import station_list, station_search, refresh
 
 parser = argparse.ArgumentParser(description="Pour les vélos")
-subparsers = parser.add_subparsers(dest="commmande", required=True)
+subparsers = parser.add_subparsers(dest="commande", required=True)
 
 
 init_parser = subparsers.add_parser("init", help="Prépare l'outil")
@@ -64,10 +64,12 @@ query_parser.add_argument("--by", choices=["station", "hour", "weekday", "day"],
 query_parser.add_argument("--top", type=int, help="Limite le nombre de résultats affichés")
 
 args = parser.parse_args()
-if args.commmande == "station":
+if args.commande == "station":
 
     if args.station_commande == "list":
         station_list()
 
     elif args.station_commande == "search":
         station_search(args.nom)
+elif args.commande == "refresh":
+    refresh()
