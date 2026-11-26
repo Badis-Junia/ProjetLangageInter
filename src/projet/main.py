@@ -93,7 +93,6 @@ elif args.commande == "alerts":
 
     elif args.low_docks != None:
         velo_alerts(2)
-
     else:
         velo_alerts(3)
 elif args.commande == "dashboard":
