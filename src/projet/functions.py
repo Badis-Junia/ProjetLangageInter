@@ -14,7 +14,6 @@ import time
 PROJECT_DIR = Path(__file__).parent
 
 
-
 # ----------------------------------------------------------------------------
 
 
@@ -186,6 +185,25 @@ def refresh(afficher: bool = True):
                 f"Last updated (vehicle_types.json) : {date.fromtimestamp(date_timestamp)}"
             )
 
+    # Favorites
+
+    if FAVORITES_FILE.exists():
+        with FAVORITES_FILE.open("r", encoding="utf-8") as file:
+            favorites = json.load(file)
+
+        ids_a_refresh = [int(station["station_id"]) for station in favorites.values()]
+
+        for station_id in ids_a_refresh:
+            favorite_delete(station_id)
+
+        for station_id in ids_a_refresh:
+            favorite_add(station_id)
+
+        if afficher:
+            print(
+                f"Last updated (favorites.json) : {date.fromtimestamp(date_timestamp)}"
+            )
+
     if afficher:
         print(f"Il y a {stations_amount} stations")
 
@@ -291,6 +309,7 @@ def velo_status(afficher: bool = True):
 # ----------------------------------------------------------------------------
 
 FAVORITES_FILE = PROJECT_DIR / "favorites" / "favorites.json"
+
 
 def favorite_state():
     print(f"{'ID'}    {'Station':<20} {'Vélos':>6}  {'Places':>6}")
@@ -483,6 +502,3 @@ def dashboard():
                 live.update(generer_panneau(stats, network_last_updated, temps_restant))
         except KeyboardInterrupt:
             pass
-
-
-
