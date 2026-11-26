@@ -441,14 +441,35 @@ def dashboard():
         data["last_updated"], tz=ZoneInfo("Europe/Paris")
     ).strftime("%d/%m/%Y %H:%M:%S")
 
+    def charger_favoris_en_direct():
+        if not FAVORITES_FILE.exists():
+            return {}
+        with FAVORITES_FILE.open("r", encoding="utf-8") as file:
+            favs = json.load(file)
+
+        status_path = data_dir / "station_status.json"
+        if status_path.exists():
+            with open(status_path, "r", encoding="utf-8") as f:
+                statuts = {
+                    str(s["station_id"]): s
+                    for s in json.load(f)["data"]["stations"]
+                }
+            for nom, infos in favs.items():
+                st_id = str(infos["station_id"])
+                if st_id in statuts:
+                    infos["num_bikes_available"] = statuts[st_id]["num_bikes_available"]
+                    infos["num_docks_available"] = statuts[st_id]["num_docks_available"]
+        return favs
+
     stats = velo_status(afficher=False)
+    favoris_json = charger_favoris_en_direct()
     temps_restant = refresh_time
 
-    def generer_panneau(stats_actuelles, network_last_updated, secondes_restantes):
+    def generer_panneau(stats_actuelles, favoris_actuels, network_last_updated, secondes_restantes):
 
         texte_fav = ""
 
-        for nom_station, infos in favoris_json.items():
+        for nom_station, infos in favoris_actuels.items():
             stations_id = infos["station_id"]
             velos = infos["num_bikes_available"]
             places = infos["num_docks_available"]
@@ -467,7 +488,7 @@ def dashboard():
         )
 
     with Live(
-        generer_panneau(stats, network_last_updated, temps_restant),
+        generer_panneau(stats, favoris_json,network_last_updated, temps_restant),
         console=console,
         refresh_per_second=4,
     ) as live:
@@ -489,7 +510,8 @@ def dashboard():
 
                     temps_restant = refresh_time
 
-                live.update(generer_panneau(stats, network_last_updated, temps_restant))
+                favoris_json = charger_favoris_en_direct()
+                live.update(generer_panneau(stats, favoris_json,network_last_updated, temps_restant))
         except KeyboardInterrupt:
             pass
 
