@@ -4,7 +4,7 @@
     "num_bikes_available": 30,
     "vehicle_types_available": [
       {
-        "count": 20,
+        "count": 30,
         "vehicle_type_id": "bike"
       }
     ],

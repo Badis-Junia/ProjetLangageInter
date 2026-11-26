@@ -1,7 +1,7 @@
-<<<<<<< HEAD
+
 src/projet/__pycache__/__init__.cpython-312.pyc
 src/projet/__pycache__/functions.cpython-312.pyc
 src/projet/__pycache__/main.cpython-312.pyc
-=======
-favorites/
->>>>>>> d733698 (tout est bon)
+
+src/projet/favorites/*
+
