@@ -411,16 +411,6 @@ def favorite_delete(id: int):
 
 # ----------------------------------------------------------------------------
 
-
-def velo_alerts(test):
-    if test == 1:
-        print("test 1")
-    elif test == 2:
-        print("test 2")
-    elif test == 3:
-        print("test 3")
-
-
 def dashboard():
     console = Console()
     data_dir = Path.home() / ".local" / "share" / "velo"
@@ -502,3 +492,35 @@ def dashboard():
                 live.update(generer_panneau(stats, network_last_updated, temps_restant))
         except KeyboardInterrupt:
             pass
+
+def alerts(low_bikes, low_docks):
+
+    data_dir = Path.home() / ".local" / "share" / "velo"
+    with open(f"{data_dir}/station_information.json", "r", encoding="utf-8") as file:
+        informations = json.load(file)["data"]["stations"]
+
+    noms_par_id = {s["station_id"]: s["name"] for s in informations}
+
+    with open(f"{data_dir}/station_status.json", "rb") as file:
+        data = json.load(file)
+        date_timestamp = data.get("last_updated")
+        dt = datetime.fromtimestamp(date_timestamp)
+        print(f"V'Lille - alertes du {dt.date()} à {dt.time()}")
+        hors_service, vides, pleines = [], [], []
+        for s in data["data"]["stations"]:
+            station_id = s.get("station_id")
+            nom = noms_par_id.get(station_id, "")
+            label = f"{int(station_id)} {nom}".strip()
+
+            if s["is_installed"] == False or s["is_renting"] == False or s["is_returning"] == False:
+                hors_service.append(label)
+            elif int(s["num_bikes_available"]) <= low_bikes:
+                vides.append(f"{label} ({int(s['num_bikes_available'])})")
+            elif int(s["num_docks_available"]) <= low_docks:
+                docks = int(s["num_docks_available"])
+                unite = "place" if docks <= 1 else "places"
+                pleines.append(f"{label} ({docks} {unite})")
+
+        print(f"Hors service ({len(hors_service)}) {', '.join(hors_service)}")
+        print(f"\nVides ou presque ({len(vides)}) {', '.join(vides)}")
+        print(f"\nPleines ou presque ({len(pleines)}) {', '.join(pleines)}")
