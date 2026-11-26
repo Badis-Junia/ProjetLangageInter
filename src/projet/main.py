@@ -1,9 +1,19 @@
 import argparse
-from projet.functions import station_list, station_search, refresh, velo_status, velo_alerts, dashboard
+from projet.functions import station_list, station_search, refresh, velo_status, dashboard, alerts
 from projet.functions import init_parser as initialisation
 from projet.functions import favorite_add, favorite_delete, favorite_state
+from pathlib import Path
+import yaml
 
 def main():
+    config_dir = Path.home() / ".config" / "velo"
+    config_file = config_dir / "config.yaml"
+
+    with open(config_file, "r", encoding = "utf-8") as f:
+        config = yaml.safe_load(f)
+        low_bikes = config["alerts"]["low_bikes"]
+        low_docks = config["alerts"]["low_docks"]
+
     parser = argparse.ArgumentParser(description="Pour les vélos")
     subparsers = parser.add_subparsers(dest="commande", required=True)
 
@@ -35,8 +45,8 @@ def main():
 
 
     alert_parser = subparsers.add_parser("alerts", help="Lister les stations vides, presque vides, bref toutes les alertes")
-    alert_parser.add_argument("--low-bikes", type=int, help="Seuil de vélos disponibles")
-    alert_parser.add_argument("--low-docks", type=int, help="Seuil de places disponibles")
+    alert_parser.add_argument("--low-bikes", type=int, help="Seuil de vélos disponibles", default=low_bikes)
+    alert_parser.add_argument("--low-docks", type=int, help="Seuil de places disponibles", default=low_docks)
 
 
     dashboard_parser = subparsers.add_parser("dashboard", help="Tableau de bord, mis à jour en temps réel")
@@ -88,17 +98,11 @@ def main():
             favorite_delete(args.station)
         else:
             favorite_state()
-    elif args.commande == "alerts":
-        if args.low_bikes != None:
-            velo_alerts(1)
-
-        elif args.low_docks != None:
-            velo_alerts(2)
-
-        else:
-            velo_alerts(3)
     elif args.commande == "dashboard":
         dashboard() 
+
+    elif args.commande == "alerts":
+        alerts(low_bikes = args.low_bikes, low_docks=args.low_docks)
 
 if __name__ == "__main__":
     main()
