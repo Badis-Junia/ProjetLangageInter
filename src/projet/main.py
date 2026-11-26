@@ -1,6 +1,7 @@
 import argparse
 from projet.functions import station_list, station_search, refresh, velo_status, velo_alerts
 from projet.functions import init_parser as initialisation
+from projet.functions import favorite_add, favorite_delete, favorite_state
 
 parser = argparse.ArgumentParser(description="Pour les vélos")
 subparsers = parser.add_subparsers(dest="commande", required=True)
@@ -25,10 +26,11 @@ subparsers.add_parser("status", help="Résumé de l'état du réseau en temps r�
 
 favorite_parser = subparsers.add_parser("favorites", help="Gérer les favoris")
 favorite_subparsers = favorite_parser.add_subparsers(dest="favorite_commande", required=True)
-favorite_add = favorite_subparsers.add_parser("add", help="Ajouter un favori")
-favorite_add.add_argument("station", type=str)
-favorite_remove = favorite_subparsers.add_parser("remove", help="Enlever un favori")
-favorite_remove.add_argument("station", type=str)
+favorite_subparsers.add_parser("list", help="Afficher les favoris")
+favorite_add_parser = favorite_subparsers.add_parser("add", help="Ajouter un favori")
+favorite_add_parser.add_argument("station", type=int, help="ID de la station")
+favorite_remove_parser = favorite_subparsers.add_parser("remove", help="Enlever un favori")
+favorite_remove_parser.add_argument("station", type=int, help="ID de la station")
 
 
 alert_parser = subparsers.add_parser("alerts", help="Lister les stations vides, presque vides, bref toutes les alertes")
@@ -78,6 +80,14 @@ elif args.commande == "status":
     velo_status()
 elif args.commande == "init":
     initialisation()
+elif args.commande == "favorites":
+    if args.favorite_commande == "add":
+        favorite_add(args.station)
+    elif args.favorite_commande == "remove":
+        favorite_delete(args.station)
+    else:
+        favorite_state()
+
 elif args.commande == "alerts":
     if args.low_bikes != None:
         velo_alerts(1)
