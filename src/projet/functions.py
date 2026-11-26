@@ -453,7 +453,7 @@ def dashboard():
             f"[bold]Vélos :[/bold] {stats_actuelles['velos_disponibles']} dispos | "
             f"{stats_actuelles['places_libres']} places ({stats_actuelles['taux_remplissage']}%)\n\n"
             f"Mes favoris :\n"
-            f"{texte_fav}"
+            f"{texte_fav}\n"
             f"Prochain rafraîchissement dans : [bold yellow]{secondes_restantes}s[/bold yellow]"
         )
 
