@@ -11,6 +11,10 @@ from rich.table import Table
 import time
 
 
+PROJECT_DIR = Path(__file__).parent
+
+
+
 # ----------------------------------------------------------------------------
 
 
@@ -286,10 +290,11 @@ def velo_status(afficher: bool = True):
 
 # ----------------------------------------------------------------------------
 
+FAVORITES_FILE = PROJECT_DIR / "favorites" / "favorites.json"
 
 def favorite_state():
     print(f"{'ID'}    {'Station':<20} {'Vélos':>6}  {'Places':>6}")
-    with open("favorites/favorites.json", "r") as jsonfile:
+    with open(FAVORITES_FILE, "r", encoding="utf-8") as jsonfile:
         favorites = json.load(jsonfile)
         for station_name, station in list(favorites.items()):
             velos = station.get("num_bikes_available")
@@ -324,18 +329,23 @@ def favorite_add(id: int):
         str(station["station_id"]): station["name"] for station in information_stations
     }
 
-    with open("favorites/favorites.json", "r") as file:
-        data = json.load(file)
-        if any(str(station.get("station_id")) == str(id) for station in data.values()):
-            print("Cette station est déjà dans vos favoris.")
-            raise ValueError("Station déjà présente dans le fichier favorites.json")
-        if (len(data)) >= 10:
-            print("Vous possédez plus de 10 favoris, veuillez en retirer un.")
-            raise ValueError("Limite de favoris atteinte.")
+    FAVORITES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if FAVORITES_FILE.exists():
+        with FAVORITES_FILE.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+    else:
+        data = {}
+
+    if any(str(station.get("station_id")) == str(id) for station in data.values()):
+        print("Cette station est déjà dans vos favoris.")
+        raise ValueError("Station déjà présente dans le fichier favorites.json")
+    if len(data) >= 10:
+        print("Vous possédez plus de 10 favoris, veuillez en retirer un.")
+        raise ValueError("Limite de favoris atteinte.")
 
     for station in status_stations:
         if str(id) == str(station["station_id"]):
-            favoritePath = Path("favorites/favorites.json")
+            favoritePath = FAVORITES_FILE
             favoritePath.parent.mkdir(parents=True, exist_ok=True)
 
             if favoritePath.exists():
@@ -358,7 +368,11 @@ def favorite_add(id: int):
 
 
 def favorite_delete(id: int):
-    with open("favorites/favorites.json", "r") as jsonfile:
+    if not FAVORITES_FILE.exists():
+        print("Aucun fichier de favoris n'existe pour le moment.")
+        return
+
+    with open(FAVORITES_FILE, "r", encoding="utf-8") as jsonfile:
         favorites = json.load(jsonfile)
 
     found = False
@@ -372,7 +386,7 @@ def favorite_delete(id: int):
         print("Cette station n'est pas dans vos favoris.")
         raise ValueError("Station absente du fichier favorites.json")
 
-    with open("favorites/favorites.json", "w") as jsonfile:
+    with open(FAVORITES_FILE, "w", encoding="utf-8") as jsonfile:
         json.dump(favorites, jsonfile, indent=2)
 
 
@@ -403,8 +417,12 @@ def dashboard():
         config = yaml.safe_load(f) or {}
         refresh_time = config.get("dashboard", {}).get("refresh_seconds", 60)
 
-    with open("favorites/favorites.json", "r", encoding="utf-8") as file:
-        favoris_json = json.load(file)
+    FAVORITES_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if FAVORITES_FILE.exists():
+        with FAVORITES_FILE.open("r", encoding="utf-8") as file:
+            favoris_json = json.load(file)
+    else:
+        favoris_json = {}
 
     if refresh_time < 60:
         refresh_time = 60
@@ -467,4 +485,4 @@ def dashboard():
             pass
 
 
-dashboard()
+

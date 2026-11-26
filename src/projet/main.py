@@ -1,5 +1,5 @@
 import argparse
-from projet.functions import station_list, station_search, refresh, velo_status, velo_alerts
+from projet.functions import station_list, station_search, refresh, velo_status, velo_alerts, dashboard
 from projet.functions import init_parser as initialisation
 from projet.functions import favorite_add, favorite_delete, favorite_state
 
@@ -87,7 +87,6 @@ elif args.commande == "favorites":
         favorite_delete(args.station)
     else:
         favorite_state()
-
 elif args.commande == "alerts":
     if args.low_bikes != None:
         velo_alerts(1)
@@ -97,3 +96,5 @@ elif args.commande == "alerts":
 
     else:
         velo_alerts(3)
+elif args.commande == "dashboard":
+    dashboard() 
