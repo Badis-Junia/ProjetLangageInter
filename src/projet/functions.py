@@ -453,7 +453,7 @@ def alerts(low_bikes, low_docks, afficher=True):
 
 # ----------------------------------------------------------------------------
 
-def dashboard():
+def dashboard(refresh_seconds: int | None = None):
     console = Console()
     data_dir = Path.home() / ".local" / "share" / "velo"
     config_dir = Path.home() / ".config" / "velo"
@@ -466,7 +466,14 @@ def dashboard():
 
     with open(config_file, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f) or {}
+
+    if refresh_seconds is not None:
+        refresh_time = refresh_seconds
+    else:
         refresh_time = config.get("dashboard", {}).get("refresh_seconds", 60)
+
+    if refresh_time < 60:
+        refresh_time = 60
 
     FAVORITES_FILE.parent.mkdir(parents=True, exist_ok=True)
     if FAVORITES_FILE.exists():
@@ -474,9 +481,6 @@ def dashboard():
             favoris_json = json.load(file)
     else:
         favoris_json = {}
-
-    if refresh_time < 60:
-        refresh_time = 60
 
     network_name = data["data"]["name"]
     network_last_updated = datetime.fromtimestamp(

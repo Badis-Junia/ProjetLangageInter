@@ -99,7 +99,7 @@ def main():
         else:
             favorite_state()
     elif args.commande == "dashboard":
-        dashboard() 
+        dashboard(refresh_seconds=args.refresh)
 
     elif args.commande == "alerts":
         alerts(low_bikes = args.low_bikes, low_docks=args.low_docks)
