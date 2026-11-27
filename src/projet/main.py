@@ -15,7 +15,7 @@ def main():
         low_docks = config["alerts"]["low_docks"]
 
     parser = argparse.ArgumentParser(description="Pour les vélos")
-    subparsers = parser.add_subparsers(dest="commande", required=True)
+    subparsers = parser.add_subparsers(dest="commande")
 
 
     init_parser = subparsers.add_parser("init", help="Prépare l'outil")
@@ -103,6 +103,28 @@ def main():
 
     elif args.commande == "alerts":
         alerts(low_bikes = args.low_bikes, low_docks=args.low_docks)
+    if args.commande is None:
+        print("""
+    V'Lille - Gestion du réseau de vélos
+
+    Utilisation : velo <commande>
+
+    Commandes disponibles :
+      init          Prépare l'outil
+      refresh       Met à jour les données
+      station       Consulter les stations
+      status        Résumé de l'état du réseau
+      favorites     Gérer les favoris
+      alerts        Consulter les alertes
+      dashboard     Afficher le tableau de bord
+      collect       Enregistrer les données
+      history       Consulter l'historique
+      query         Analyser l'historique
+
+    Pour plus d'informations :
+      velo -h
+    """)
+        exit()
 
 if __name__ == "__main__":
     main()
