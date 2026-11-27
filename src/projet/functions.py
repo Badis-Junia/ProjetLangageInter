@@ -409,6 +409,48 @@ def favorite_delete(id: int):
         json.dump(favorites, jsonfile, indent=2)
 
 
+def alerts(low_bikes, low_docks, afficher=True):
+
+    data_dir = Path.home() / ".local" / "share" / "velo"
+    with open(f"{data_dir}/station_information.json", "r", encoding="utf-8") as file:
+        informations = json.load(file)["data"]["stations"]
+
+    noms_par_id = {s["station_id"]: s["name"] for s in informations}
+
+    with open(f"{data_dir}/station_status.json", "rb") as file:
+        data = json.load(file)
+        date_timestamp = data.get("last_updated")
+        dt = datetime.fromtimestamp(date_timestamp)
+        if afficher:
+            print(f"V'Lille - alertes du {dt.date()} à {dt.time()}")
+        hors_service, vides, pleines = [], [], []
+        for s in data["data"]["stations"]:
+            station_id = s.get("station_id")
+            nom = noms_par_id.get(station_id, "")
+            label = f"{int(station_id)} {nom}".strip()
+
+            if s["is_installed"] == False or s["is_renting"] == False or s["is_returning"] == False:
+                hors_service.append(label)
+            elif int(s["num_bikes_available"]) <= low_bikes:
+                vides.append(f"{label} ({int(s['num_bikes_available'])})")
+            elif int(s["num_docks_available"]) <= low_docks:
+                docks = int(s["num_docks_available"])
+                unite = "place" if docks <= 1 else "places"
+                pleines.append(f"{label} ({docks} {unite})")
+
+        alerts_velo = {
+            "hors_service": hors_service,
+            "vides": vides,
+            "pleines": pleines,
+        }        
+                
+        if afficher:
+            print(f"Hors service ({len(hors_service)}) {', '.join(hors_service)}")
+            print(f"\nVides ou presque ({len(vides)}) {', '.join(vides)}")
+            print(f"\nPleines ou presque ({len(pleines)}) {', '.join(pleines)}")
+
+        return alerts_velo
+
 # ----------------------------------------------------------------------------
 
 def dashboard():
@@ -461,13 +503,17 @@ def dashboard():
                     infos["num_docks_available"] = statuts[st_id]["num_docks_available"]
         return favs
 
+    low_bikes = config.get("alerts", {}).get("low_bikes", 2)
+    low_docks = config.get("alerts", {}).get("low_docks", 2)
     stats = velo_status(afficher=False)
+    alerts_velo = alerts(low_bikes, low_docks, afficher=False)
     favoris_json = charger_favoris_en_direct()
     temps_restant = refresh_time
 
-    def generer_panneau(stats_actuelles, favoris_actuels, network_last_updated, secondes_restantes):
+    def generer_panneau(stats_actuelles, favoris_actuels, network_last_updated, secondes_restantes, alerts_velo_actuelles):
 
         texte_fav = ""
+        texte_alerts = ""
 
         for nom_station, infos in favoris_actuels.items():
             stations_id = infos["station_id"]
@@ -475,20 +521,28 @@ def dashboard():
             places = infos["num_docks_available"]
             texte_fav += f" - {nom_station} ({stations_id}) : {velos} velos, {places} places disponibles\n"
 
+        hors_service = "\n - ".join(alerts_velo_actuelles["hors_service"]) or "Aucune"
+        vides = "\n - ".join(alerts_velo_actuelles["vides"]) or "Aucune"
+        pleines = "\n - ".join(alerts_velo_actuelles["pleines"]) or "Aucune"
+
         return Panel.fit(
             f"[bold cyan]Réseau {network_name}[/bold cyan]\n"
             f"[dim]Mise à jour : {network_last_updated}[/dim]\n\n"
+            f"Prochain rafraîchissement dans : [bold yellow]{secondes_restantes}s[/bold yellow]\n\n"
             f"[bold]Stations :[/bold] {stats_actuelles['en_service']}/{stats_actuelles['total_stations']} en service "
             f"({stats_actuelles['vides']} vides, {stats_actuelles['pleines']} pleines)\n"
             f"[bold]Vélos :[/bold] {stats_actuelles['velos_disponibles']} dispos | "
             f"{stats_actuelles['places_libres']} places ({stats_actuelles['taux_remplissage']}%)\n\n"
-            f"Mes favoris :\n"
+            f"[bold]Mes favoris :[/bold]\n"
             f"{texte_fav}\n"
-            f"Prochain rafraîchissement dans : [bold yellow]{secondes_restantes}s[/bold yellow]"
+            f"[bold]Les alertes :[/bold]\n"
+            f"Hors Service ({len(alerts_velo_actuelles['hors_service'])}) :\n - {hors_service}\n\n"
+            f"Vide ou presque ({len(alerts_velo_actuelles['vides'])}) :\n - {vides}\n\n"
+            f"Pleine ou presque ({len(alerts_velo_actuelles['pleines'])}) :\n - {pleines}\n\n"
         )
 
     with Live(
-        generer_panneau(stats, favoris_json,network_last_updated, temps_restant),
+        generer_panneau(stats, favoris_json,network_last_updated, temps_restant, alerts_velo),
         console=console,
         refresh_per_second=4,
     ) as live:
@@ -499,6 +553,8 @@ def dashboard():
 
                 if temps_restant <= 0:
                     stats = velo_status(afficher=False)
+                    favoris_json = charger_favoris_en_direct()
+                    alerts_velo = alerts(low_bikes, low_docks, afficher=False)
                     with open(
                         data_dir / "station_status.json", "r", encoding="utf-8"
                     ) as f:
@@ -510,39 +566,6 @@ def dashboard():
 
                     temps_restant = refresh_time
 
-                favoris_json = charger_favoris_en_direct()
-                live.update(generer_panneau(stats, favoris_json,network_last_updated, temps_restant))
+                live.update(generer_panneau(stats, favoris_json,network_last_updated, temps_restant, alerts_velo))
         except KeyboardInterrupt:
             pass
-
-def alerts(low_bikes, low_docks):
-
-    data_dir = Path.home() / ".local" / "share" / "velo"
-    with open(f"{data_dir}/station_information.json", "r", encoding="utf-8") as file:
-        informations = json.load(file)["data"]["stations"]
-
-    noms_par_id = {s["station_id"]: s["name"] for s in informations}
-
-    with open(f"{data_dir}/station_status.json", "rb") as file:
-        data = json.load(file)
-        date_timestamp = data.get("last_updated")
-        dt = datetime.fromtimestamp(date_timestamp)
-        print(f"V'Lille - alertes du {dt.date()} à {dt.time()}")
-        hors_service, vides, pleines = [], [], []
-        for s in data["data"]["stations"]:
-            station_id = s.get("station_id")
-            nom = noms_par_id.get(station_id, "")
-            label = f"{int(station_id)} {nom}".strip()
-
-            if s["is_installed"] == False or s["is_renting"] == False or s["is_returning"] == False:
-                hors_service.append(label)
-            elif int(s["num_bikes_available"]) <= low_bikes:
-                vides.append(f"{label} ({int(s['num_bikes_available'])})")
-            elif int(s["num_docks_available"]) <= low_docks:
-                docks = int(s["num_docks_available"])
-                unite = "place" if docks <= 1 else "places"
-                pleines.append(f"{label} ({docks} {unite})")
-
-        print(f"Hors service ({len(hors_service)}) {', '.join(hors_service)}")
-        print(f"\nVides ou presque ({len(vides)}) {', '.join(vides)}")
-        print(f"\nPleines ou presque ({len(pleines)}) {', '.join(pleines)}")
